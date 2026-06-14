@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8 text-center">
+        <div class="card p-5">
+            <h1 class="mb-3">
+                <i class="bi bi-wallet2" style="color:#667eea"></i>
+                Smart Expense Tracker
+            </h1>
+            <p class="text-muted mb-4">
+                Upload your bank statement and we will automatically
+                track, categorize and analyze your expenses!
+            </p>
+            <a href="/upload" class="btn btn-primary btn-lg">
+                <i class="bi bi-upload"></i> Upload Bank Statement
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card p-4 text-center">
+            <i class="bi bi-graph-up" style="font-size:2rem; color:#667eea"></i>
+            <h5 class="mt-2">Track Expenses</h5>
+            <p class="text-muted">See exactly where your money goes</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-4 text-center">
+            <i class="bi bi-tags" style="font-size:2rem; color:#764ba2"></i>
+            <h5 class="mt-2">Auto Categorize</h5>
+            <p class="text-muted">Food, Transport, Shopping and more</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-4 text-center">
+            <i class="bi bi-file-earmark-pdf" style="font-size:2rem; color:#667eea"></i>
+            <h5 class="mt-2">Export Reports</h5>
+            <p class="text-muted">Download PDF and CSV audit reports</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
