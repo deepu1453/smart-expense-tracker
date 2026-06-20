@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row mt-4">
+    <div class="col-md-5">
+        <div class="card p-4" style="border-radius:15px;">
+            <h5 class="mb-3"><i class="bi bi-wallet" style="color:#667eea"></i> Set Monthly Budget</h5>
+            <form method="POST" action="/set-budget">
+                <div class="mb-3">
+                    <label class="form-label">Category</label>
+                    <select name="category" class="form-select">
+                        <option>Food</option>
+                        <option>Transport</option>
+                        <option>Shopping</option>
+                        <option>Entertainment</option>
+                        <option>Health</option>
+                        <option>Bills</option>
+                        <option>Education</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Monthly Limit (₹)</label>
+                    <input type="number" name="limit_amount" class="form-control" placeholder="e.g. 3000" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-check-circle"></i> Set Budget
+                </button>
+            </form>
+        </div>
+    </div>
+    <div class="col-md-7">
+        <div class="card p-4" style="border-radius:15px;">
+            <h5 class="mb-3"><i class="bi bi-list-check" style="color:#667eea"></i> Active Budgets</h5>
+            {% if budgets %}
+            <div style="display:flex;flex-direction:column;gap:12px;">
+                {% for b in budgets %}
+                <div style="padding:14px;border-radius:12px;background:rgba(102,126,234,0.06);border:1px solid rgba(102,126,234,0.15);">
+                    <div class="d-flex justify-content-between">
+                        <strong>{{ b.category }}</strong>
+                        <span style="color:#667eea;font-weight:700;">₹{{ b.limit_amount }}</span>
+                    </div>
+                    <div style="font-size:12px;color:#64748b;">Month {{ b.month }}/{{ b.year }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div style="text-align:center;color:#64748b;padding:30px;">
+                No budgets set yet. Add one on the left!
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

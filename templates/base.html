@@ -3,28 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Expense Tracker</title>
+    <title>SpendSmart – Expense Tracker</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        body { background-color: #f8f9fa; }
-        .navbar { background: linear-gradient(135deg, #667eea, #764ba2); }
+        body { background-color: #0d0d1f; color: #e2e8f0; }
+        .navbar { background: linear-gradient(135deg, #667eea, #764ba2); box-shadow: 0 4px 20px rgba(102,126,234,0.3); }
         .navbar-brand, .nav-link { color: white !important; font-weight: 600; }
-        .card { border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .nav-link:hover { color: rgba(255,255,255,0.75) !important; }
+        .card { border: 1px solid rgba(255,255,255,0.08); border-radius: 15px; background: rgba(255,255,255,0.04); box-shadow: 0 4px 20px rgba(0,0,0,0.3); color: #e2e8f0; }
         .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); border: none; }
+        .table { color: #e2e8f0; }
+        .table thead th { background: rgba(102,126,234,0.15); color: #a78bfa; border-color: rgba(255,255,255,0.08); }
+        .table tbody tr { border-color: rgba(255,255,255,0.06); }
+        .table-hover tbody tr:hover { background: rgba(102,126,234,0.08); }
+        .form-control, .form-select { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #e2e8f0; }
+        .form-control:focus, .form-select:focus { background: rgba(255,255,255,0.08); border-color: rgba(102,126,234,0.6); color: #e2e8f0; box-shadow: 0 0 0 3px rgba(102,126,234,0.15); }
+        .form-control::placeholder { color: #475569; }
+        .input-group-text { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.12); color: #a78bfa; }
+        .nav-advisor { background: rgba(255,255,255,0.15); border-radius: 20px; padding: 4px 14px !important; margin-left: 4px; }
+        .nav-advisor:hover { background: rgba(255,255,255,0.25) !important; }
+        .nav-logout { background: rgba(239,68,68,0.2); border-radius: 20px; padding: 4px 14px !important; margin-left: 4px; }
+        .nav-logout:hover { background: rgba(239,68,68,0.35) !important; }
     </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg mb-4">
         <div class="container">
             <a class="navbar-brand" href="/">
-                <i class="bi bi-wallet2"></i> Smart Expense Tracker
+                <i class="bi bi-wallet2"></i> SpendSmart
             </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="/">Home</a>
-                <a class="nav-link" href="/transactions">Transactions</a>
-                <a class="nav-link" href="/budget">Budget</a>
-                <a class="nav-link" href="/dashboard">Dashboard</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navMenu">
+                <div class="navbar-nav ms-auto align-items-center">
+                    <a class="nav-link" href="/">Home</a>
+                    <a class="nav-link" href="/upload">Upload</a>
+                    <a class="nav-link" href="/transactions">Transactions</a>
+                    <a class="nav-link" href="/budget">Budget</a>
+                    <a class="nav-link" href="/dashboard">Dashboard</a>
+                    <a class="nav-link nav-advisor" href="/advisor">🧠 AI Advisor</a>
+                    <a class="nav-link nav-logout" href="/logout">🚪 Logout</a>
+                </div>
             </div>
         </div>
     </nav>
@@ -36,4 +57,3 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-

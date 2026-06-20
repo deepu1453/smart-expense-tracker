@@ -1,45 +1,402 @@
-{% extends 'base.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpendSmart – Smart Expense Tracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #0a0a1a; color: #fff; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
 
-{% block content %}
-<div class="row justify-content-center mt-5">
-    <div class="col-md-8 text-center">
-        <div class="card p-5">
-            <h1 class="mb-3">
-                <i class="bi bi-wallet2" style="color:#667eea"></i>
-                Smart Expense Tracker
-            </h1>
-            <p class="text-muted mb-4">
-                Upload your bank statement and we will automatically
-                track, categorize and analyze your expenses!
-            </p>
-            <a href="/upload" class="btn btn-primary btn-lg">
-                <i class="bi bi-upload"></i> Upload Bank Statement
-            </a>
-        </div>
-    </div>
-</div>
+        /* HERO SECTION */
+        .hero {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a0a2e 50%, #0a1a2e 100%);
+            display: flex; align-items: center;
+            position: relative; overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute; top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(ellipse at center, rgba(102,126,234,0.15) 0%, transparent 60%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+        @keyframes pulse { 0%,100%{transform:scale(1);opacity:0.5} 50%{transform:scale(1.1);opacity:1} }
 
-<div class="row mt-4">
-    <div class="col-md-4">
-        <div class="card p-4 text-center">
-            <i class="bi bi-graph-up" style="font-size:2rem; color:#667eea"></i>
-            <h5 class="mt-2">Track Expenses</h5>
-            <p class="text-muted">See exactly where your money goes</p>
+        /* Floating orbs */
+        .orb {
+            position: absolute; border-radius: 50%;
+            filter: blur(60px); opacity: 0.3; animation: float 6s ease-in-out infinite;
+        }
+        .orb1 { width:400px;height:400px; background:#667eea; top:-100px;right:-100px; animation-delay:0s; }
+        .orb2 { width:300px;height:300px; background:#764ba2; bottom:-50px;left:-50px; animation-delay:2s; }
+        .orb3 { width:200px;height:200px; background:#f093fb; top:50%;left:60%; animation-delay:4s; }
+        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-30px)} }
+
+        .hero-content { position: relative; z-index: 2; }
+
+        .hero-badge {
+            display: inline-block; padding: 6px 18px;
+            background: rgba(102,126,234,0.2); border: 1px solid rgba(102,126,234,0.5);
+            border-radius: 50px; font-size: 13px; color: #a78bfa; margin-bottom: 24px;
+            animation: slideDown 0.6s ease;
+        }
+        @keyframes slideDown { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 5vw, 4.5rem);
+            font-weight: 800; line-height: 1.1;
+            background: linear-gradient(135deg, #fff 0%, #a78bfa 50%, #667eea 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: slideUp 0.8s ease 0.2s both;
+        }
+        .hero p {
+            font-size: 1.2rem; color: #94a3b8; margin: 24px 0 40px;
+            max-width: 550px; line-height: 1.7;
+            animation: slideUp 0.8s ease 0.4s both;
+        }
+        @keyframes slideUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+
+        .hero-btns { animation: slideUp 0.8s ease 0.6s both; }
+        .btn-glow {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none; padding: 16px 40px; font-size: 1.1rem;
+            font-weight: 700; border-radius: 50px; color: white;
+            box-shadow: 0 0 30px rgba(102,126,234,0.5);
+            transition: all 0.3s; text-decoration: none; display: inline-block;
+        }
+        .btn-glow:hover { transform: translateY(-3px); box-shadow: 0 0 50px rgba(102,126,234,0.8); color: white; }
+        .btn-outline-glow {
+            border: 2px solid rgba(102,126,234,0.6); padding: 14px 36px; font-size: 1rem;
+            font-weight: 600; border-radius: 50px; color: #a78bfa;
+            background: transparent; transition: all 0.3s; text-decoration: none; display: inline-block;
+        }
+        .btn-outline-glow:hover { background: rgba(102,126,234,0.1); color: #a78bfa; transform: translateY(-3px); }
+
+        /* Stats in hero */
+        .hero-stats {
+            display: flex; gap: 32px; margin-top: 60px;
+            animation: slideUp 0.8s ease 0.8s both;
+        }
+        .stat-item { text-align: center; }
+        .stat-num { font-size: 2rem; font-weight: 800; color: #667eea; }
+        .stat-label { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Mock dashboard preview */
+        .hero-preview {
+            position: relative; z-index: 2;
+            animation: slideUp 1s ease 0.5s both;
+        }
+        .preview-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px; padding: 24px;
+            backdrop-filter: blur(10px);
+        }
+        .preview-stat {
+            background: rgba(102,126,234,0.1);
+            border: 1px solid rgba(102,126,234,0.2);
+            border-radius: 12px; padding: 16px; text-align: center;
+        }
+        .preview-stat .num { font-size: 1.5rem; font-weight: 700; color: #a78bfa; }
+        .preview-stat .lbl { font-size: 11px; color: #64748b; }
+
+        /* Features Section */
+        .features { padding: 100px 0; background: #0d0d1f; }
+        .section-title {
+            text-align: center; margin-bottom: 60px;
+        }
+        .section-title h2 {
+            font-size: 2.5rem; font-weight: 800;
+            background: linear-gradient(135deg, #fff, #a78bfa);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .section-title p { color: #64748b; font-size: 1.1rem; margin-top: 12px; }
+
+        .feature-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px; padding: 32px;
+            transition: all 0.3s; height: 100%;
+        }
+        .feature-card:hover {
+            border-color: rgba(102,126,234,0.4);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(102,126,234,0.15);
+        }
+        .feature-icon {
+            width: 60px; height: 60px;
+            background: linear-gradient(135deg, rgba(102,126,234,0.2), rgba(118,75,162,0.2));
+            border: 1px solid rgba(102,126,234,0.3);
+            border-radius: 16px; display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem; margin-bottom: 20px;
+        }
+        .feature-card h5 { color: #fff; font-weight: 700; margin-bottom: 10px; }
+        .feature-card p { color: #64748b; font-size: 0.95rem; line-height: 1.6; }
+
+        /* How it works */
+        .how-it-works { padding: 100px 0; background: #0a0a1a; }
+        .step-card {
+            display: flex; gap: 20px; align-items: flex-start; margin-bottom: 40px;
+        }
+        .step-num {
+            width: 48px; height: 48px; min-width: 48px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 12px; display: flex; align-items: center;
+            justify-content: center; font-weight: 800; font-size: 1.2rem;
+        }
+        .step-content h5 { color: #fff; margin-bottom: 6px; }
+        .step-content p { color: #64748b; }
+
+        /* CTA Section */
+        .cta-section {
+            padding: 100px 0;
+            background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1));
+            border-top: 1px solid rgba(255,255,255,0.05);
+            text-align: center;
+        }
+        .cta-section h2 {
+            font-size: 2.5rem; font-weight: 800; color: #fff; margin-bottom: 16px;
+        }
+        .cta-section p { color: #94a3b8; font-size: 1.1rem; margin-bottom: 40px; }
+
+        /* Navbar */
+        .top-nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            padding: 16px 0;
+            background: rgba(10,10,26,0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .nav-brand {
+            font-size: 1.4rem; font-weight: 800;
+            background: linear-gradient(135deg, #667eea, #a78bfa);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+        .nav-link-custom { color: #94a3b8 !important; font-weight: 500; transition: color 0.2s; }
+        .nav-link-custom:hover { color: #a78bfa !important; }
+    </style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="top-nav">
+    <div class="container d-flex justify-content-between align-items-center">
+        <a href="/" class="nav-brand">⚡ SpendSmart</a>
+        <div class="d-flex gap-4 align-items-center">
+            <a href="/dashboard" class="nav-link-custom">Dashboard</a>
+            <a href="/transactions" class="nav-link-custom">Transactions</a>
+            <a href="/upload" class="btn-glow" style="padding:10px 24px;font-size:0.9rem;">Upload CSV</a>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card p-4 text-center">
-            <i class="bi bi-tags" style="font-size:2rem; color:#764ba2"></i>
-            <h5 class="mt-2">Auto Categorize</h5>
-            <p class="text-muted">Food, Transport, Shopping and more</p>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6 hero-content">
+                <div class="hero-badge">✨ Built for India's Digital Generation</div>
+                <h1>Your Money,<br>Finally Under<br>Control.</h1>
+                <p>Upload your bank statement and watch SpendSmart automatically categorize every expense, track your budget, predict your spending, and generate audit-ready reports.</p>
+                <div class="hero-btns d-flex gap-3 flex-wrap">
+                    <a href="/upload" class="btn-glow">
+                        <i class="bi bi-upload me-2"></i>Upload Bank Statement
+                    </a>
+                    <a href="/dashboard" class="btn-outline-glow">
+                        <i class="bi bi-graph-up me-2"></i>View Dashboard
+                    </a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <div class="stat-num">100%</div>
+                        <div class="stat-label">Auto-Categorized</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-num">PDF</div>
+                        <div class="stat-label">Instant Reports</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-num">0 ₹</div>
+                        <div class="stat-label">Cost to Use</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 hero-preview">
+                <div class="preview-card">
+                    <div style="text-align:center; padding:20px 0;">
+                        <div style="font-size:4rem; margin-bottom:16px;">⚡</div>
+                        <h4 style="color:#fff; font-weight:700; margin-bottom:12px;">Your Financial Command Center</h4>
+                        <p style="color:#94a3b8; font-size:0.95rem; margin-bottom:28px;">
+                            One dashboard for everything — uploads, charts, budgets, and AI insights.
+                        </p>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:14px;">
+                        <div style="display:flex; align-items:center; gap:14px; padding:14px 16px; background:rgba(102,126,234,0.08); border:1px solid rgba(102,126,234,0.2); border-radius:12px;">
+                            <span style="font-size:1.4rem;">📂</span>
+                            <span style="color:#e2e8f0; font-size:0.95rem;">Upload your bank statement in seconds</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:14px; padding:14px 16px; background:rgba(102,126,234,0.08); border:1px solid rgba(102,126,234,0.2); border-radius:12px;">
+                            <span style="font-size:1.4rem;">🏷️</span>
+                            <span style="color:#e2e8f0; font-size:0.95rem;">Every expense auto-categorized for you</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:14px; padding:14px 16px; background:rgba(102,126,234,0.08); border:1px solid rgba(102,126,234,0.2); border-radius:12px;">
+                            <span style="font-size:1.4rem;">📊</span>
+                            <span style="color:#e2e8f0; font-size:0.95rem;">Charts and forecasts built automatically</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:14px; padding:14px 16px; background:rgba(102,126,234,0.08); border:1px solid rgba(102,126,234,0.2); border-radius:12px;">
+                            <span style="font-size:1.4rem;">🧠</span>
+                            <span style="color:#e2e8f0; font-size:0.95rem;">Ask AI anything about your spending</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card p-4 text-center">
-            <i class="bi bi-file-earmark-pdf" style="font-size:2rem; color:#667eea"></i>
-            <h5 class="mt-2">Export Reports</h5>
-            <p class="text-muted">Download PDF and CSV audit reports</p>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+    <div class="container">
+        <div class="section-title">
+            <h2>Everything You Need</h2>
+            <p>One app. All your finances. Zero confusion.</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">📂</div>
+                    <h5>CSV Upload</h5>
+                    <p>Upload any Indian bank statement — SBI, HDFC, ICICI, Axis. We read it in seconds.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">🏷️</div>
+                    <h5>Auto-Categorization</h5>
+                    <p>Swiggy → Food. Uber → Transport. Amazon → Shopping. All automatic, instantly.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">🔮</div>
+                    <h5>Spending Forecast</h5>
+                    <p>Predicts your total spend by end of month based on current patterns. Stay ahead of surprises.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">🚨</div>
+                    <h5>Budget Alerts</h5>
+                    <p>Get instant warnings when you cross 80% of any category budget. Never overspend again.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h5>Savings Goal Tracker</h5>
+                    <p>Set your savings target and track your progress visually every single day.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">📄</div>
+                    <h5>PDF Audit Reports</h5>
+                    <p>Download professional, clean PDF and CSV reports ready for any audit or review.</p>
+                </div>
+            </div>
         </div>
     </div>
-</div>
-{% endblock %}
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-it-works">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-5">
+                <div class="section-title" style="text-align:left;margin-bottom:40px;">
+                    <h2>How It Works</h2>
+                    <p>Three steps to total financial clarity.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-num">1</div>
+                    <div class="step-content">
+                        <h5>Upload Your Bank Statement</h5>
+                        <p>Download your CSV from any bank and drop it into SpendSmart.</p>
+                    </div>
+                </div>
+                <div class="step-card">
+                    <div class="step-num">2</div>
+                    <div class="step-content">
+                        <h5>We Analyze Everything</h5>
+                        <p>Every transaction is auto-categorized, totaled, and compared against your budgets.</p>
+                    </div>
+                </div>
+                <div class="step-card">
+                    <div class="step-num">3</div>
+                    <div class="step-content">
+                        <h5>Get Insights & Reports</h5>
+                        <p>See charts, forecasts, alerts, and download your full audit report in one click.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-7">
+                <div class="preview-card" style="padding:36px;">
+                    <div style="text-align:center; margin-bottom:24px;">
+                        <div style="font-size:3rem; margin-bottom:12px;">🧠</div>
+                        <h4 style="color:#fff; font-weight:700; margin-bottom:8px;">Smart Features Built In</h4>
+                        <p style="color:#94a3b8; font-size:0.9rem;">Everything you need, automatically</p>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div style="padding:18px; background:rgba(102,126,234,0.08); border:1px solid rgba(102,126,234,0.2); border-radius:12px; text-align:center; height:100%;">
+                                <div style="font-size:1.8rem; margin-bottom:8px;">🚨</div>
+                                <div style="color:#fff; font-weight:600; font-size:0.9rem;">Budget Alerts</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div style="padding:18px; background:rgba(102,126,234,0.08); border:1px solid rgba(102,126,234,0.2); border-radius:12px; text-align:center; height:100%;">
+                                <div style="font-size:1.8rem; margin-bottom:8px;">🔮</div>
+                                <div style="color:#fff; font-weight:600; font-size:0.9rem;">Spending Forecast</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div style="padding:18px; background:rgba(102,126,234,0.08); border:1px solid rgba(102,126,234,0.2); border-radius:12px; text-align:center; height:100%;">
+                                <div style="font-size:1.8rem; margin-bottom:8px;">🎯</div>
+                                <div style="color:#fff; font-weight:600; font-size:0.9rem;">Savings Goals</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div style="padding:18px; background:rgba(102,126,234,0.08); border:1px solid rgba(102,126,234,0.2); border-radius:12px; text-align:center; height:100%;">
+                                <div style="font-size:1.8rem; margin-bottom:8px;">📄</div>
+                                <div style="color:#fff; font-weight:600; font-size:0.9rem;">PDF Reports</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+    <div class="container">
+        <h2>Ready to Take Control?</h2>
+        <p>Upload your first bank statement and see the magic in under 30 seconds.</p>
+        <a href="/upload" class="btn-glow" style="font-size:1.2rem;padding:18px 50px;">
+            <i class="bi bi-rocket-takeoff me-2"></i>Get Started — It's Free
+        </a>
+    </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

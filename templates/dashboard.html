@@ -2,103 +2,261 @@
 {% block content %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<div class="row mt-4 mb-4">
-  <div class="col-md-3">
-    <div class="card p-3 text-center" style="border-radius:15px; border-left: 4px solid #667eea;">
-      <div style="font-size:2rem;">💰</div>
-      <h6 class="text-muted mt-1">Total Spent</h6>
-      <h3 style="color:#667eea; font-weight:700;">₹{{ total_spent }}</h3>
+<!-- BUDGET ALERTS (Feature 2) -->
+{% if budget_alerts %}
+<div id="alert-banner" style="margin-bottom:20px;">
+    {% for alert in budget_alerts %}
+    <div class="alert alert-warning d-flex align-items-center" style="border-radius:12px; border:none; background:rgba(239,68,68,0.12); border-left:4px solid #ef4444;">
+        <span style="font-size:1.5rem; margin-right:12px;">🚨</span>
+        <div>
+            <strong style="color:#ef4444;">Budget Warning!</strong>
+            <span style="color:#ccc;"> You've spent <strong>₹{{ alert.spent }}</strong> of your ₹{{ alert.limit }} {{ alert.category }} budget 
+            ({{ alert.percent }}% used)</span>
+        </div>
+        <button type="button" class="btn-close btn-close-white ms-auto" onclick="this.parentElement.remove()"></button>
     </div>
-  </div>
-  <div class="col-md-3">
-    <div class="card p-3 text-center" style="border-radius:15px; border-left: 4px solid #22c55e;">
-      <div style="font-size:2rem;">📥</div>
-      <h6 class="text-muted mt-1">Total Income</h6>
-      <h3 style="color:#22c55e; font-weight:700;">₹{{ total_income }}</h3>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- TOP ROW STATS -->
+<div class="row mt-2 mb-4 g-3">
+    <div class="col-6 col-md-3">
+        <div class="card p-3 text-center" style="border-radius:15px; border:none; background:linear-gradient(135deg,rgba(102,126,234,0.15),rgba(118,75,162,0.15)); border:1px solid rgba(102,126,234,0.3);">
+            <div style="font-size:1.8rem;">💰</div>
+            <div class="text-muted" style="font-size:12px; margin-top:4px;">TOTAL SPENT</div>
+            <div style="font-size:1.4rem; font-weight:800; color:#667eea;">₹{{ total_spent }}</div>
+        </div>
     </div>
-  </div>
-  <div class="col-md-3">
-    <div class="card p-3 text-center" style="border-radius:15px; border-left: 4px solid #f59e0b;">
-      <div style="font-size:2rem;">💾</div>
-      <h6 class="text-muted mt-1">Savings</h6>
-      <h3 style="color:#f59e0b; font-weight:700;">₹{{ savings }}</h3>
+    <div class="col-6 col-md-3">
+        <div class="card p-3 text-center" style="border-radius:15px; border:1px solid rgba(34,197,94,0.3); background:rgba(34,197,94,0.08);">
+            <div style="font-size:1.8rem;">📥</div>
+            <div class="text-muted" style="font-size:12px; margin-top:4px;">TOTAL INCOME</div>
+            <div style="font-size:1.4rem; font-weight:800; color:#22c55e;">₹{{ total_income }}</div>
+        </div>
     </div>
-  </div>
-  <div class="col-md-3">
-    <div class="card p-3 text-center" style="border-radius:15px; border-left: 4px solid #ef4444;">
-      <div style="font-size:2rem;">📋</div>
-      <h6 class="text-muted mt-1">Transactions</h6>
-      <h3 style="color:#ef4444; font-weight:700;">{{ total_count }}</h3>
+    <div class="col-6 col-md-3">
+        <div class="card p-3 text-center" style="border-radius:15px; border:1px solid rgba(245,158,11,0.3); background:rgba(245,158,11,0.08);">
+            <div style="font-size:1.8rem;">💾</div>
+            <div class="text-muted" style="font-size:12px; margin-top:4px;">SAVINGS</div>
+            <div style="font-size:1.4rem; font-weight:800; color:#f59e0b;">₹{{ savings }}</div>
+        </div>
     </div>
-  </div>
+    <div class="col-6 col-md-3">
+        <div class="card p-3 text-center" style="border-radius:15px; border:1px solid rgba(239,68,68,0.3); background:rgba(239,68,68,0.08);">
+            <div style="font-size:1.8rem;">📋</div>
+            <div class="text-muted" style="font-size:12px; margin-top:4px;">TRANSACTIONS</div>
+            <div style="font-size:1.4rem; font-weight:800; color:#ef4444;">{{ total_count }}</div>
+        </div>
+    </div>
 </div>
 
+<!-- SPENDING FORECAST (Feature 1) -->
 <div class="row mb-4">
-  <div class="col-md-6">
-    <div class="card p-4" style="border-radius:15px;">
-      <h5 class="mb-3">
-        <i class="bi bi-pie-chart" style="color:#667eea"></i>
-        Spending by Category
-      </h5>
-      <canvas id="catChart" height="250"></canvas>
-    </div>
-  </div>
-  <div class="col-md-6">
-    <div class="card p-4" style="border-radius:15px;">
-      <h5 class="mb-3">
-        <i class="bi bi-bar-chart" style="color:#667eea"></i>
-        Category Breakdown
-      </h5>
-      <canvas id="barChart" height="250"></canvas>
-    </div>
-  </div>
-</div>
-
-<div class="row mb-4">
-  <div class="col-12">
-    <div class="card p-4" style="border-radius:15px;">
-      <h5 class="mb-3">
-        <i class="bi bi-list-check" style="color:#667eea"></i>
-        Category Summary
-      </h5>
-      <div class="table-responsive">
-        <table class="table table-hover">
-          <thead style="background:#f8f9fa;">
-            <tr>
-              <th>Category</th>
-              <th>Total Spent</th>
-              <th>Transactions</th>
-              <th>Progress</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for cat, amount, count in category_data %}
-            <tr>
-              <td>
-                {% if cat == 'Food' %}🍔
-                {% elif cat == 'Transport' %}🚗
-                {% elif cat == 'Shopping' %}🛍️
-                {% elif cat == 'Entertainment' %}🎬
-                {% elif cat == 'Health' %}💊
-                {% elif cat == 'Bills' %}⚡
-                {% elif cat == 'Education' %}📚
-                {% else %}📌{% endif %}
-                {{ cat }}
-              </td>
-              <td><strong style="color:#667eea;">₹{{ amount }}</strong></td>
-              <td>{{ count }} transactions</td>
-              <td style="width:200px;">
-                <div style="background:#f0f0f0; border-radius:10px; height:8px;">
-                  <div style="background:linear-gradient(135deg,#667eea,#764ba2); border-radius:10px; height:8px; width:{{ [amount/total_spent*100, 100]|min|round }}%"></div>
+    <div class="col-12">
+        <div class="card p-4" style="border-radius:15px; background:linear-gradient(135deg,rgba(102,126,234,0.08),rgba(118,75,162,0.08)); border:1px solid rgba(102,126,234,0.25);">
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <div style="font-size:2.5rem;">🔮</div>
+                <div class="flex-grow-1">
+                    <div style="font-size:1.1rem; font-weight:700; color:#a78bfa; margin-bottom:4px;">Spending Forecast</div>
+                    <div style="color:#94a3b8; font-size:0.95rem;">
+                        Based on your current pace, you're on track to spend 
+                        <strong style="color:#fff;">₹{{ forecast_amount }}</strong> by end of this month.
+                        {% if forecast_status == 'good' %}
+                        <span style="color:#22c55e; font-weight:600;"> ✅ You're spending wisely!</span>
+                        {% elif forecast_status == 'warning' %}
+                        <span style="color:#f59e0b; font-weight:600;"> ⚠️ Keep an eye on your spending!</span>
+                        {% else %}
+                        <span style="color:#ef4444; font-weight:600;"> 🔴 High spending month ahead!</span>
+                        {% endif %}
+                    </div>
                 </div>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+                <div style="text-align:right; min-width:120px;">
+                    <div style="font-size:2rem; font-weight:800; color:#667eea;">₹{{ forecast_amount }}</div>
+                    <div style="font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:1px;">Projected Total</div>
+                </div>
+            </div>
+            <div style="margin-top:16px; background:rgba(255,255,255,0.05); border-radius:8px; height:8px; overflow:hidden;">
+                <div style="width:{{ forecast_progress }}%; height:8px; background:linear-gradient(90deg,#667eea,#764ba2); border-radius:8px; transition:width 1s;"></div>
+            </div>
+            <div style="font-size:12px; color:#64748b; margin-top:6px;">Month progress: {{ forecast_progress }}% elapsed · {{ days_remaining }} days remaining</div>
+        </div>
     </div>
-  </div>
+</div>
+
+<!-- TOP 3 BIGGEST EXPENSES (Feature 3) + SAVINGS GOAL (Feature 4) -->
+<div class="row mb-4 g-3">
+    <div class="col-lg-6">
+        <div class="card p-4" style="border-radius:15px; height:100%;">
+            <h5 style="font-weight:700; margin-bottom:20px;">
+                <span style="font-size:1.3rem;">💸</span> Top 3 Biggest Expenses
+            </h5>
+            {% if top3 %}
+            <div style="display:flex; flex-direction:column; gap:12px;">
+                {% for i, t in top3 %}
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 16px; border-radius:12px;
+                    {% if i == 1 %}background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);
+                    {% elif i == 2 %}background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);
+                    {% else %}background:rgba(102,126,234,0.08);border:1px solid rgba(102,126,234,0.2);{% endif %}">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <div style="font-size:1.5rem; font-weight:900;
+                            {% if i == 1 %}color:#ef4444;{% elif i == 2 %}color:#f59e0b;{% else %}color:#667eea;{% endif %}">
+                            #{{ i }}
+                        </div>
+                        <div>
+                            <div style="font-weight:700; color:#fff; font-size:0.95rem;">{{ t.description[:28] }}</div>
+                            <div style="font-size:12px; color:#64748b;">{{ t.category }} · {{ t.date }}</div>
+                        </div>
+                    </div>
+                    <div style="font-size:1.2rem; font-weight:800;
+                        {% if i == 1 %}color:#ef4444;{% elif i == 2 %}color:#f59e0b;{% else %}color:#667eea;{% endif %}">
+                        ₹{{ t.amount }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div style="text-align:center; color:#64748b; padding:30px;">
+                No expense data yet. Upload a CSV!
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card p-4" style="border-radius:15px; height:100%;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 style="font-weight:700; margin:0;">🎯 Savings Goal Tracker</h5>
+                <button class="btn btn-sm" style="background:rgba(102,126,234,0.15);color:#a78bfa;border:1px solid rgba(102,126,234,0.3);border-radius:8px;" 
+                    onclick="document.getElementById('goal-form').style.display = document.getElementById('goal-form').style.display === 'none' ? 'block' : 'none'">
+                    Edit Goal
+                </button>
+            </div>
+
+            <form id="goal-form" method="POST" action="/set-goal" style="display:none; margin-bottom:16px;">
+                <div class="input-group">
+                    <span class="input-group-text">₹</span>
+                    <input type="number" name="goal" class="form-control" placeholder="Enter savings goal" value="{{ savings_goal }}">
+                    <button type="submit" class="btn btn-primary">Set</button>
+                </div>
+            </form>
+
+            {% if savings_goal > 0 %}
+            <div style="text-align:center; margin-bottom:20px;">
+                <div style="font-size:2.5rem; font-weight:900; color:#22c55e;">{{ goal_percent }}%</div>
+                <div style="color:#64748b; font-size:13px;">of your ₹{{ savings_goal }} goal achieved</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.05); border-radius:12px; height:16px; overflow:hidden; margin-bottom:12px;">
+                <div style="width:{{ [goal_percent, 100]|min }}%; height:16px; background:linear-gradient(90deg,#22c55e,#06b6d4); border-radius:12px; transition:width 1.5s;"></div>
+            </div>
+            <div class="row g-2 mt-2">
+                <div class="col-6">
+                    <div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:10px;padding:10px;text-align:center;">
+                        <div style="font-weight:700;color:#22c55e;">₹{{ savings }}</div>
+                        <div style="font-size:11px;color:#64748b;">Saved So Far</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div style="background:rgba(102,126,234,0.08);border:1px solid rgba(102,126,234,0.2);border-radius:10px;padding:10px;text-align:center;">
+                        <div style="font-weight:700;color:#667eea;">₹{{ remaining_goal }}</div>
+                        <div style="font-size:11px;color:#64748b;">Still Needed</div>
+                    </div>
+                </div>
+            </div>
+            {% if goal_percent >= 100 %}
+            <div style="margin-top:16px;text-align:center;padding:12px;background:rgba(34,197,94,0.1);border-radius:10px;color:#22c55e;font-weight:700;">
+                🎉 Goal Achieved! You crushed it!
+            </div>
+            {% elif goal_percent >= 80 %}
+            <div style="margin-top:16px;text-align:center;padding:12px;background:rgba(245,158,11,0.1);border-radius:10px;color:#f59e0b;font-weight:600;">
+                🔥 So close! Just ₹{{ remaining_goal }} more to go!
+            </div>
+            {% endif %}
+            {% else %}
+            <div style="text-align:center;color:#64748b;padding:20px;">
+                <div style="font-size:2rem;margin-bottom:8px;">🎯</div>
+                <div>Set a savings goal to track your progress!</div>
+                <button class="btn btn-sm btn-primary mt-3" onclick="document.getElementById('goal-form').style.display='block'">
+                    Set My Goal
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- CHARTS ROW -->
+<div class="row mb-4 g-3">
+    <div class="col-md-6">
+        <div class="card p-4" style="border-radius:15px;">
+            <h5 class="mb-3"><i class="bi bi-pie-chart" style="color:#667eea"></i> Spending by Category</h5>
+            <canvas id="catChart" height="250"></canvas>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card p-4" style="border-radius:15px;">
+            <h5 class="mb-3"><i class="bi bi-bar-chart" style="color:#667eea"></i> Category Breakdown</h5>
+            <canvas id="barChart" height="250"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- CATEGORY SUMMARY TABLE -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card p-4" style="border-radius:15px;">
+            <h5 class="mb-3"><i class="bi bi-list-check" style="color:#667eea"></i> Category Summary</h5>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead style="background:#f8f9fa;">
+                        <tr>
+                            <th>Category</th>
+                            <th>Total Spent</th>
+                            <th>Transactions</th>
+                            <th>Progress</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cat, amount, count in category_data %}
+                        <tr>
+                            <td>
+                                {% if cat == 'Food' %}🍔
+                                {% elif cat == 'Transport' %}🚗
+                                {% elif cat == 'Shopping' %}🛍️
+                                {% elif cat == 'Entertainment' %}🎬
+                                {% elif cat == 'Health' %}💊
+                                {% elif cat == 'Bills' %}⚡
+                                {% elif cat == 'Education' %}📚
+                                {% else %}📌{% endif %}
+                                {{ cat }}
+                            </td>
+                            <td><strong style="color:#667eea;">₹{{ amount }}</strong></td>
+                            <td>{{ count }} transactions</td>
+                            <td style="width:200px;">
+                                <div style="background:#f0f0f0; border-radius:10px; height:8px;">
+                                    <div style="background:linear-gradient(135deg,#667eea,#764ba2); border-radius:10px; height:8px; width:{{ [amount/total_spent*100, 100]|min|round }}%"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DOWNLOAD BUTTONS -->
+<div class="row mb-5">
+    <div class="col-12 text-center">
+        <h5 class="mb-3">📥 Download Your Audit Report</h5>
+        <a href="/export/pdf" class="btn btn-danger btn-lg me-3">
+            <i class="bi bi-file-earmark-pdf"></i> Download PDF Report
+        </a>
+        <a href="/export/csv" class="btn btn-success btn-lg">
+            <i class="bi bi-file-earmark-excel"></i> Download CSV Report
+        </a>
+    </div>
 </div>
 
 <script>
@@ -107,58 +265,18 @@ const catValues = {{ cat_values|tojson }};
 const colors = ['#667eea','#22c55e','#f59e0b','#ef4444','#06b6d4','#a855f7','#ec4899','#94a3b8'];
 
 new Chart(document.getElementById('catChart'), {
-  type: 'doughnut',
-  data: {
-    labels: catLabels,
-    datasets: [{
-      data: catValues,
-      backgroundColor: colors,
-      borderWidth: 0,
-      hoverOffset: 8
-    }]
-  },
-  options: {
-    responsive: true,
-    plugins: {
-      legend: { position: 'bottom' }
-    }
-  }
+    type: 'doughnut',
+    data: { labels: catLabels, datasets: [{ data: catValues, backgroundColor: colors, borderWidth: 0, hoverOffset: 8 }] },
+    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
 });
-
 new Chart(document.getElementById('barChart'), {
-  type: 'bar',
-  data: {
-    labels: catLabels,
-    datasets: [{
-      label: 'Amount Spent (₹)',
-      data: catValues,
-      backgroundColor: colors,
-      borderRadius: 8
-    }]
-  },
-  options: {
-    responsive: true,
-    plugins: { legend: { display: false } },
-    scales: {
-      y: {
-        beginAtZero: true,
-        ticks: {
-          callback: value => '₹' + value
-        }
-      }
+    type: 'bar',
+    data: { labels: catLabels, datasets: [{ label: 'Amount Spent (₹)', data: catValues, backgroundColor: colors, borderRadius: 8 }] },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { callback: v => '₹' + v } } }
     }
-  }
 });
 </script>
-<div class="row mb-4">
-  <div class="col-12 text-center">
-    <h5 class="mb-3">📥 Download Your Audit Report</h5>
-    <a href="/export/pdf" class="btn btn-danger btn-lg me-3">
-      <i class="bi bi-file-earmark-pdf"></i> Download PDF Report
-    </a>
-    <a href="/export/csv" class="btn btn-success btn-lg">
-      <i class="bi bi-file-earmark-excel"></i> Download CSV Report
-    </a>
-  </div>
-</div>
 {% endblock %}
