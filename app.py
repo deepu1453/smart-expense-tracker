@@ -185,6 +185,65 @@ def parse_pdf_statement(file_stream):
                         except (ValueError, IndexError):
                             continue
 
+        # ── Attempt 3: generic fallback for other wallet/app PDFs (GPay, Paytm, etc.) ──
+        # Looks for any line containing a date, an amount with a currency symbol,
+        # and a debit/credit-style keyword. Best-effort, not guaranteed for every format.
+        if not rows:
+            generic_date = re.compile(
+                r'(\d{1,2}\s+[A-Za-z]{3,9}\s+\d{4}|[A-Za-z]{3,9}\s+\d{1,2},?\s+\d{4}|\d{1,2}[-/]\d{1,2}[-/]\d{2,4})'
+            )
+            generic_amount = re.compile(r'[₹Rs.]*\s*([\d,]+\.\d{2}|[\d,]{2,})')
+            credit_words = ['credit', 'received', 'refund', 'cashback', 'deposit', 'added money']
+            debit_words = ['debit', 'paid', 'sent', 'spent', 'withdraw', 'purchase', 'transfer']
+
+            for page in pdf.pages:
+                text = page.extract_text() or ''
+                lines = text.split('\n')
+                for i, line in enumerate(lines):
+                    line_clean = line.strip()
+                    if not line_clean:
+                        continue
+                    date_match = generic_date.search(line_clean)
+                    if not date_match:
+                        continue
+
+                    # Look for amount on this line or the next 2 lines (handles wrapped layouts)
+                    search_text = line_clean
+                    for j in range(1, 3):
+                        if i + j < len(lines):
+                            search_text += ' ' + lines[i + j].strip()
+
+                    lower_search = search_text.lower()
+                    has_credit = any(w in lower_search for w in credit_words)
+                    has_debit = any(w in lower_search for w in debit_words)
+                    if not (has_credit or has_debit):
+                        continue
+
+                    amt_matches = generic_amount.findall(search_text)
+                    if not amt_matches:
+                        continue
+                    try:
+                        amount = float(amt_matches[-1].replace(',', ''))
+                    except ValueError:
+                        continue
+                    if amount <= 0 or amount > 10000000:
+                        continue
+
+                    desc = line_clean
+                    desc = generic_date.sub('', desc).strip()
+                    desc = re.sub(r'[₹Rs.]*[\d,]+\.?\d*', '', desc).strip()
+                    desc = re.sub(r'\s+', ' ', desc).strip()[:100]
+                    if not desc:
+                        desc = 'Transaction'
+
+                    ttype = 'income' if has_credit and not has_debit else 'expense'
+                    rows.append({
+                        'date': date_match.group(),
+                        'description': desc,
+                        'amount': amount,
+                        'type': ttype
+                    })
+
     return rows
 
 
