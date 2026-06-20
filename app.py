@@ -287,6 +287,9 @@ def login():
         if user:
             session['user_id'] = user.id
             session['username'] = user.username
+            user.login_count = (user.login_count or 0) + 1
+            user.last_login = datetime.utcnow()
+            db.session.commit()
             return redirect(url_for('home'))
         else:
             error = 'Invalid username or password. Please try again!'
@@ -297,6 +300,24 @@ def login():
 def logout():
     session.clear()
     return redirect(url_for('login'))
+
+
+@app.route('/admin')
+@login_required
+def admin():
+    users = User.query.order_by(User.created_at.desc()).all()
+    user_data = []
+    for u in users:
+        txn_count = Transaction.query.filter_by(user_id=u.id).count()
+        user_data.append({
+            'username': u.username,
+            'email': u.email,
+            'created_at': u.created_at.strftime('%d %b %Y, %I:%M %p') if u.created_at else 'N/A',
+            'last_login': u.last_login.strftime('%d %b %Y, %I:%M %p') if u.last_login else 'Never logged in',
+            'login_count': u.login_count or 0,
+            'txn_count': txn_count
+        })
+    return render_template('admin.html', users=user_data, total_users=len(users))
 
 
 # ─── MAIN ROUTES ─────────────────────────────────────────────────────────────
@@ -322,9 +343,10 @@ def upload():
 
         if filename.endswith('.pdf'):
             try:
-                rows = parse_pdf_statement(file.stream)
-            except Exception:
-                return jsonify({'error': 'Could not read this PDF. Make sure it is a text-based statement, not a scanned image.'}), 400
+                pdf_bytes = io.BytesIO(file.read())
+                rows = parse_pdf_statement(pdf_bytes)
+            except Exception as e:
+                return jsonify({'error': 'Could not read this PDF: ' + str(e)}), 400
 
             if not rows:
                 return jsonify({'error': 'No transactions found in this PDF. Try uploading a CSV instead, or check the PDF has a clear transaction list.'}), 400
