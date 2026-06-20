@@ -302,9 +302,54 @@ def logout():
     return redirect(url_for('login'))
 
 
+@app.route('/change-password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    error = None
+    success = None
+    user = User.query.get(current_user_id())
+
+    if request.method == 'POST':
+        action = request.form.get('action')
+        current_password = request.form.get('current_password', '').strip()
+
+        if user.password != hash_password(current_password):
+            error = 'Current password is incorrect!'
+
+        elif action == 'change_username':
+            new_username = request.form.get('new_username', '').strip()
+            if not new_username:
+                error = 'New username cannot be empty!'
+            elif new_username == user.username:
+                error = 'This is already your current username!'
+            elif User.query.filter_by(username=new_username).first():
+                error = 'That username is already taken! Choose a different one.'
+            else:
+                user.username = new_username
+                session['username'] = new_username
+                db.session.commit()
+                success = 'Username changed successfully to "' + new_username + '"!'
+
+        elif action == 'change_password':
+            new_password = request.form.get('new_password', '').strip()
+            confirm_password = request.form.get('confirm_password', '').strip()
+            if len(new_password) < 6:
+                error = 'New password must be at least 6 characters!'
+            elif new_password != confirm_password:
+                error = 'New password and confirm password do not match!'
+            else:
+                user.password = hash_password(new_password)
+                db.session.commit()
+                success = 'Password changed successfully!'
+
+    return render_template('change_password.html', error=error, success=success, current_username=user.username)
+
+
 @app.route('/admin')
 @login_required
 def admin():
+    if session.get('username') != 'Deepu':
+        return redirect(url_for('home'))
     users = User.query.order_by(User.created_at.desc()).all()
     user_data = []
     for u in users:
