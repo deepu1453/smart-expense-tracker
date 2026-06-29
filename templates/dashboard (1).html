@@ -84,6 +84,63 @@
     </div>
 </div>
 
+<!-- MONTHLY COMPARISON: THIS MONTH VS LAST MONTH -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card p-4" style="border-radius:15px;">
+            <h5 style="font-weight:700; margin-bottom:20px;">
+                <span style="font-size:1.2rem;">📅</span> This Month vs Last Month
+            </h5>
+
+            {% if monthly_comparison.has_last_month_data %}
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div style="padding:18px; border-radius:12px; background:rgba(239,68,68,0.06); border:1px solid rgba(239,68,68,0.15);">
+                        <div style="font-size:12px; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Spending</div>
+                        <div style="display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;">
+                            <div style="font-size:1.6rem; font-weight:800; color:#fff;">₹{{ monthly_comparison.this_month_spent }}</div>
+                            {% if monthly_comparison.spent_change_pct is not none %}
+                                {% if monthly_comparison.spent_change_pct > 0 %}
+                                <span style="color:#ef4444; font-size:0.85rem; font-weight:600;">▲ {{ monthly_comparison.spent_change_pct }}% vs last month</span>
+                                {% elif monthly_comparison.spent_change_pct < 0 %}
+                                <span style="color:#22c55e; font-size:0.85rem; font-weight:600;">▼ {{ -monthly_comparison.spent_change_pct }}% vs last month</span>
+                                {% else %}
+                                <span style="color:#64748b; font-size:0.85rem;">No change vs last month</span>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                        <div style="font-size:12px; color:#64748b; margin-top:6px;">Last month: ₹{{ monthly_comparison.last_month_spent }}</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div style="padding:18px; border-radius:12px; background:rgba(34,197,94,0.06); border:1px solid rgba(34,197,94,0.15);">
+                        <div style="font-size:12px; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Income</div>
+                        <div style="display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;">
+                            <div style="font-size:1.6rem; font-weight:800; color:#fff;">₹{{ monthly_comparison.this_month_income }}</div>
+                            {% if monthly_comparison.income_change_pct is not none %}
+                                {% if monthly_comparison.income_change_pct > 0 %}
+                                <span style="color:#22c55e; font-size:0.85rem; font-weight:600;">▲ {{ monthly_comparison.income_change_pct }}% vs last month</span>
+                                {% elif monthly_comparison.income_change_pct < 0 %}
+                                <span style="color:#ef4444; font-size:0.85rem; font-weight:600;">▼ {{ -monthly_comparison.income_change_pct }}% vs last month</span>
+                                {% else %}
+                                <span style="color:#64748b; font-size:0.85rem;">No change vs last month</span>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                        <div style="font-size:12px; color:#64748b; margin-top:6px;">Last month: ₹{{ monthly_comparison.last_month_income }}</div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div style="text-align:center; color:#64748b; padding:20px;">
+                <div style="font-size:1.8rem; margin-bottom:8px;">📊</div>
+                <div>No data found for last month yet — comparison will appear once you have transactions spanning two months.</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
 <!-- TOP 3 BIGGEST EXPENSES (Feature 3) + SAVINGS GOAL (Feature 4) -->
 <div class="row mb-4 g-3">
     <div class="col-lg-6">

@@ -90,6 +90,82 @@ def get_budget_alerts(expenses, uid):
     return alerts
 
 
+# ─── FLEXIBLE DATE PARSING (handles CSV, PhonePe, and bank table formats) ───
+_DATE_FORMATS = [
+    '%Y-%m-%d',      # 2026-06-01  (CSV)
+    '%b %d, %Y',     # Jun 19, 2026 (PhonePe)
+    '%d %b %Y',       # 19 Jun 2026
+    '%d-%m-%Y',       # 19-06-2026
+    '%d/%m/%Y',       # 19/06/2026
+    '%m/%d/%Y',       # 06/19/2026
+]
+
+def parse_transaction_date(date_str):
+    """Tries multiple known date formats. Returns a datetime object, or None if unparseable."""
+    if not date_str:
+        return None
+    date_str = date_str.strip()
+    for fmt in _DATE_FORMATS:
+        try:
+            return datetime.strptime(date_str, fmt)
+        except ValueError:
+            continue
+    return None
+
+
+def get_monthly_comparison(transactions):
+    """
+    Compares total spending and income between the current calendar month
+    and the previous calendar month, using each transaction's parsed date.
+    Transactions whose date can't be parsed are excluded from this comparison
+    (but still count everywhere else in the app).
+    """
+    today = date.today()
+    this_month, this_year = today.month, today.year
+    if this_month == 1:
+        last_month, last_month_year = 12, this_year - 1
+    else:
+        last_month, last_month_year = this_month - 1, this_year
+
+    this_month_spent = 0.0
+    this_month_income = 0.0
+    last_month_spent = 0.0
+    last_month_income = 0.0
+    unparsed_count = 0
+
+    for t in transactions:
+        dt = parse_transaction_date(t.date)
+        if dt is None:
+            unparsed_count += 1
+            continue
+        if dt.year == this_year and dt.month == this_month:
+            if t.type == 'expense':
+                this_month_spent += t.amount
+            else:
+                this_month_income += t.amount
+        elif dt.year == last_month_year and dt.month == last_month:
+            if t.type == 'expense':
+                last_month_spent += t.amount
+            else:
+                last_month_income += t.amount
+
+    def pct_change(current, previous):
+        if previous == 0:
+            return None  # avoid divide-by-zero; "no prior data" case
+        return round(((current - previous) / previous) * 100)
+
+    return {
+        'this_month_spent': round(this_month_spent, 2),
+        'this_month_income': round(this_month_income, 2),
+        'last_month_spent': round(last_month_spent, 2),
+        'last_month_income': round(last_month_income, 2),
+        'spent_change_pct': pct_change(this_month_spent, last_month_spent),
+        'income_change_pct': pct_change(this_month_income, last_month_income),
+        'has_last_month_data': last_month_spent > 0 or last_month_income > 0,
+        'unparsed_count': unparsed_count
+    }
+
+
 # ─── PDF BANK / PHONEPE / GPAY STATEMENT PARSER ──────────────────────────────
 def parse_pdf_statement(file_stream):
     """
@@ -470,6 +546,7 @@ def dashboard():
 
     forecast_amount, forecast_progress, days_remaining, forecast_status = get_forecast(total_spent)
     budget_alerts = get_budget_alerts(expenses, uid)
+    monthly_comparison = get_monthly_comparison(transactions)
 
     sorted_expenses = sorted(expenses, key=lambda t: t.amount, reverse=True)
     top3 = list(enumerate(sorted_expenses[:3], start=1))
@@ -495,7 +572,7 @@ def dashboard():
         forecast_amount=forecast_amount, forecast_progress=forecast_progress, days_remaining=days_remaining,
         forecast_status=forecast_status, budget_alerts=budget_alerts, top3=top3, savings_goal=savings_goal,
         goal_percent=goal_percent, remaining_goal=remaining_goal, category_data=category_data,
-        cat_labels=cat_labels, cat_values=cat_values)
+        cat_labels=cat_labels, cat_values=cat_values, monthly_comparison=monthly_comparison)
 
 
 @app.route('/set-goal', methods=['POST'])
